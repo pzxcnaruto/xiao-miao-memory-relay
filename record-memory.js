@@ -1,19 +1,20 @@
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+)
+
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Only POST allowed' })
+  }
 
-  const { SUPABASE_URL, SUPABASE_KEY, SUPABASE_TABLE_PROFILE } = process.env;
+  const { task, status } = req.body
+  const { data, error } = await supabase
+    .from('todos')
+    .insert([{ 任務: task, 地位: status }])
 
-  const record = req.body;
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE_PROFILE}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "apikey": SUPABASE_KEY,
-      "Authorization": `Bearer ${SUPABASE_KEY}`
-    },
-    body: JSON.stringify(record)
-  });
-
-  const data = await response.json();
-  res.status(response.ok ? 200 : 500).json(data);
+  if (error) return res.status(500).json({ error })
+  res.status(200).json({ data })
 }

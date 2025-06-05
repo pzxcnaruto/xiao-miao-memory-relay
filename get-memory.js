@@ -1,15 +1,12 @@
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+)
+
 export default async function handler(req, res) {
-  if (req.method !== "GET") return res.status(405).send("Method Not Allowed");
-
-  const { SUPABASE_URL, SUPABASE_KEY, SUPABASE_TABLE_PROFILE } = process.env;
-
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE_PROFILE}?select=*`, {
-    headers: {
-      "apikey": SUPABASE_KEY,
-      "Authorization": `Bearer ${SUPABASE_KEY}`
-    }
-  });
-
-  const data = await response.json();
-  res.status(response.ok ? 200 : 500).json(data);
+  const { data, error } = await supabase.from('todos').select('*')
+  if (error) return res.status(500).json({ error })
+  res.status(200).json(data)
 }
